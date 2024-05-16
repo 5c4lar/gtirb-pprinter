@@ -4,7 +4,7 @@
 
 #ifndef GTIRB_MIXER_AUXDATASCHEMA_H
 #define GTIRB_MIXER_AUXDATASCHEMA_H
-#include "../../AuxDataSchema.h"
+#include <AuxDataSchema.h>
 namespace auxdata {
     /// SymbolicExpressionInfo is a tuple of the form {UUID, offset, size, type, variant}.
     using SymbolicExpressionInfo = std::map<std::tuple<gtirb::UUID, uint64_t>, std::tuple<uint32_t, uint32_t>>;
