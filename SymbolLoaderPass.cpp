@@ -40,28 +40,20 @@ void SymbolLoaderPass::transformImpl(AnalysisPassResult &Result, gtirb::Context 
         originSymbols.emplace_back(&symbol);
     }
     for (auto *symbol : originSymbols) {
-//        if (symbol->hasReferent()) {
-//            auto name = symbol->getName();
-//            auto addr = symbol->getAddress();
-//            if (addr) {
-//                auto originSection = &Module.findSectionsOn(addr.value()).front();
-//                if (SectionMap.count(originSection) == 0) {
-//                    continue;
-//                }
-//                auto newSection = SectionMap[originSection];
-//                auto newAddr = newSection->getAddress().value() + (addr.value() - originSection->getAddress().value());
-//                auto Found = Module.findSymbols(newAddr);
-//                if (!Found.empty()) {
-//                    Module.removeSymbol(&Found.front());
-//                }
-//            }
-//            else if (symbol->getReferent<gtirb::ProxyBlock>()) {
-//                auto Found = Module.findSymbols(name);
-//                if (!Found.empty()) {
-//                    continue;
-//                }
-//            }
-//        }
+        if (symbol->hasReferent()) {
+            auto *datablock = symbol->getReferent<gtirb::DataBlock>();
+            auto *codeblock = symbol->getReferent<gtirb::CodeBlock>();
+            auto *proxyblock = symbol->getReferent<gtirb::ProxyBlock>();
+            if (datablock) {
+                if (datablock->getByteInterval()->getSection()->getModule()->getUUID() == ReferenceModule.getUUID()) {
+                    continue;
+                }
+            } else if (codeblock) {
+                if (codeblock->getByteInterval()->getSection()->getModule()->getUUID() == ReferenceModule.getUUID()) {
+                    continue;
+                }
+            }
+        }
         Module.addSymbol(symbol);
     }
 }
