@@ -1,0 +1,115 @@
+#include "types.dl"
+
+
+/**
+Instruction at address 'EA' has a symbolic operand with value 'Value'.
+'Value' is given as an address.
+The field 'Index' identifies which operand is symbolic and 'Type' specifies
+if the target is "data" or "code".
+This predicate only supports symbolic expressions with one symbol and no
+offset. For symbolic operands with offset see `moved_label`.
+*/
+.decl symbolic_operand(EA:address,Index:operand_index,Value:address,Type:symbol)
+
+/**
+There is a symbolic expression in the data at address 'EA' of size 'Size'
+pointing to 'Value'. 'Value' is given as an address.
+This predicate only supports symbolic expressions with one symbol
+and no offset. For symbolic expressions in data with offset see
+`moved_data_label` and for symbol-symbol expressions
+see `symbol_minus_symbol`.
+*/
+.decl symbolic_data(EA:address,Size:unsigned,Value:address)
+
+/**
+There is a symbolic expression in data at address 'EA' of size 'Size' of the form:
+
+'(Symbol2-Symbol1)*Scale+Offset'
+
+Both symbols are given as addresses.
+*/
+.decl symbol_minus_symbol(EA:address,Size:unsigned,Symbol1:address,Symbol2:address,Scale:unsigned,Offset:number)
+
+/**
+ There is a symbolic expression at address 'EA' of size 'Size' of the form:
+
+Symbol+Offset
+
+ This symbolic expression corresponds to a relocation and the symbol
+is referenced by name.
+ */
+.decl symbolic_expr_from_relocation(EA:address,Size:unsigned,Symbol:symbol,Offset:number,TargetEA:address)
+
+/**
+ There is a symbolic expression at address 'EA' of size 'Size' of the form:
+
+(Symbol2-Symbol1)*Scale+Offset
+
+This symbolic expression corresponds to a relocation and the symbol
+is referenced by name.
+ */
+.decl symbol_minus_symbol_from_relocation(EA:address,Size:unsigned,Symbol1:symbol,Symbol2:symbol,Scale:unsigned,Offset:number)
+
+// Not all ISAs have these
+symbol_minus_symbol_from_relocation(0,0,"","",1,0):- false.
+
+/**
+There is a symbolic expression at address 'EA' of size 'Size' of the form:
+
+'Symbol+Offset'
+
+In contrast to `symbolic_operand` and `symbolic_data`, the symbol in this
+predicate is referred by name. This allows us to include symbolic expressions
+from relocations and to choose between multiple symbols at the same location.
+This predicate captures all symbolic expressions from `symbolic_operand`,
+`moved_label`, `symbolic_data`, `moved_data_label`,
+and `symbolic_expr_from_relocation`.
+*/
+.decl symbolic_expr(EA:address,Size:unsigned,Symbol:symbol,Offset:number)
+.output symbolic_expr
+
+/**
+There is a symbolic expression at address 'EA' of size 'Size' of the form:
+  '(Symbol2-Symbol1)*Scale+Offset'
+The symbols in this predicate are referred by name.
+*/
+.decl symbolic_expr_symbol_minus_symbol(EA:address,Size:unsigned,Symbol:symbol,Symbol2:symbol,Scale:unsigned,Offset:number)
+.output symbolic_expr_symbol_minus_symbol
+
+/**
+The symbolic operand at address 'EA' and 'Index' has a symbolic expression
+attribute 'Attribute'. Note that some attributes may be inferred but not used,
+if the corresponding `symbolic_operand` is not selected.
+*/
+.decl symbolic_operand_attribute(EA:address,Index:unsigned,Attribute:symbol)
+
+symbolic_operand_attribute(0,0,""):- false.
+
+/**
+The symbolic expression at address 'EA' has a symbolic expression
+attribute 'Attribute'.
+*/
+.decl symbolic_expr_attribute(ea:address,attribute:symbol)
+.output symbolic_expr_attribute
+
+/**
+There is a symbolic expression in data at address 'EA' pointing to
+a code block at address 'Val'.
+*/
+.decl code_pointer_in_data(EA:address,Val:address)
+
+/**
+The address 'Ea' needs to be labeled so it can be referred
+in symbolic expressions.
+*/
+.decl labeled_ea(Ea:address)
+
+// How data sections are divided into elements by labels or data objects
+.decl data_object_boundary(EA:address)
+.output data_object_boundary
+
+// labels of un-initialized data
+.decl bss_data(ea:address)
+.output bss_data
+
+////////////////////////////////////////////////////////////////////////////////////

@@ -319,6 +319,7 @@ int main(int argc, char **argv)
             Pipeline.push<FunctionLoaderPass>(referenceIr);
         }
     }
+    Pipeline.push<DatalogSupersetPass>();
 
     if(vm.count("skip-function-analysis") == 0)
     {

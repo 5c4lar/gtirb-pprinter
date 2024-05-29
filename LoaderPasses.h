@@ -6,4 +6,5 @@
 #include "SymbolLoaderPass.h"
 #include "SymbolicExpressionLoaderPass.h"
 #include "FunctionLoaderPass.h"
+#include "DatalogSupersetPass.h"
 #endif // DDISASM_LOADERPASSES_H
