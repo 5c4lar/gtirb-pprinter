@@ -137,6 +137,48 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
         # temporary
     endif()
 endif()
+# ============ Datalog Superset pass =================
+set(DATALOG_SUPERSET_DATALOG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/datalog/datalog_superset.dl)
+set(DATALOG_SUPERSET_DATALOG_MAIN
+        ${CMAKE_CURRENT_SOURCE_DIR}/datalog/datalog_superset.dl)
+
+set(DATALOG_SUPERSET_CPP "${CMAKE_BINARY_DIR}/src/passes/souffle_datalog_superset.cpp")
+
+add_custom_command(
+        OUTPUT ${DATALOG_SUPERSET_CPP}
+        # Souffle includes the path of the output file in the generated program
+        # name. Change directory and use a relative path so the name does not
+        # depend on build location.
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src/passes"
+        COMMAND
+        ${SOUFFLE} ${DATALOG_SUPERSET_DATALOG_MAIN} -g souffle_datalog_superset.cpp -N
+        souffle_datalog_superset -jauto ${SOUFFLE_PREPROCESSOR_ARG}
+        DEPENDS ${DATALOG_SUPERSET_DATALOG_SOURCES})
+
+add_library(datalog_superset_pass STATIC DatalogSupersetPass.cpp ${DATALOG_SUPERSET_CPP})
+
+if(SOUFFLE_INCLUDE_DIR)
+    target_include_directories(datalog_superset_pass SYSTEM
+            PRIVATE ${SOUFFLE_INCLUDE_DIR})
+endif()
+
+target_link_libraries(datalog_superset_pass gtirb gtirb_pprinter gtirb_decoder)
+
+target_compile_definitions(datalog_superset_pass PRIVATE __EMBEDDED_SOUFFLE__)
+target_compile_definitions(datalog_superset_pass PRIVATE RAM_DOMAIN_SIZE=64)
+target_compile_options(datalog_superset_pass PRIVATE ${OPENMP_FLAGS})
+if(SOUFFLE_INCLUDE_DIR)
+    target_include_directories(datalog_superset_pass SYSTEM
+            PRIVATE ${SOUFFLE_INCLUDE_DIR})
+endif()
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+    set_common_msvc_options(datalog_superset_pass)
+
+    set_souffle_msvc_options(datalog_superset_pass)
+else()
+    target_compile_options(datalog_superset_pass PRIVATE -O3)
+endif()
 # ============ Gtirb Mixer =================
 add_executable(gtirb-mixer Main.cpp ../../Functors.cpp)
 
@@ -200,10 +242,12 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
             symbolic_expression_loader_pass 
             function_loader_pass 
             ddisasm_loader_pass
+            datalog_superset_pass
             no_return_pass function_inference_pass)
 
     target_link_options(
             gtirb-mixer PRIVATE /WHOLEARCHIVE:ddisasm_loader_pass$<$<CONFIG:Debug>:d>
+            /WHOLEARCHIVE:datalog_superset_pass$<$<CONFIG:Debug>:d>
             /WHOLEARCHIVE:code_block_loader_pass<$<CONFIG:Debug>:d>
             /WHOLEARCHIVE:data_block_loader_pass<$<CONFIG:Debug>:d>
             /WHOLEARCHIVE:proxy_block_loader_pass<$<CONFIG:Debug>:d>
@@ -224,6 +268,7 @@ else()
                 symbolic_expression_loader_pass 
                 function_loader_pass                  
                 -Wl,-all_load ddisasm_loader_pass
+                datalog_superset_pass
                 no_return_pass function_inference_pass -Wl,-noall_load)
     else()
         target_link_libraries(
@@ -237,6 +282,7 @@ else()
                 symbolic_expression_loader_pass 
                 function_loader_pass
                 -Wl,--whole-archive ddisasm_loader_pass
+                datalog_superset_pass
                 no_return_pass function_inference_pass -Wl,--no-whole-archive)
     endif()
 endif()
