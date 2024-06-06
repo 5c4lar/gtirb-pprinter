@@ -34,8 +34,11 @@ void DataBlockLoaderPass::transformImpl(AnalysisPassResult &Result, gtirb::Conte
         {
             auto Offset = Block->getAddress().value() - RefSection->getAddress().value();
             auto Addr = Section->getAddress().value();
-            auto &ByteInterval = Section->findByteIntervalsOn(Addr + Offset).front();
-            ByteInterval.addBlock(Offset, Block);
+            auto Result = Section->findByteIntervalsOn(Addr + Offset);
+            if (!Result.empty()) {
+                auto &ByteInterval = Result.front();
+                ByteInterval.addBlock(Offset, Block);
+            }
         }
     }
 }

@@ -234,6 +234,7 @@ endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     target_link_libraries(gtirb-mixer PRIVATE 
+            ${GENERATED_STATIC_LIB}
             scc_pass 
             code_block_loader_pass 
             data_block_loader_pass 
@@ -244,7 +245,10 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
             ddisasm_loader_pass
             datalog_superset_pass
             no_return_pass function_inference_pass)
-
+    foreach(GENLIB ${GENERATED_STATIC_LIB})
+        target_link_options(ddisasm PRIVATE
+                        /WHOLEARCHIVE:${GENLIB}$<$<CONFIG:Debug>:d>)
+    endforeach()
     target_link_options(
             gtirb-mixer PRIVATE /WHOLEARCHIVE:ddisasm_loader_pass$<$<CONFIG:Debug>:d>
             /WHOLEARCHIVE:datalog_superset_pass$<$<CONFIG:Debug>:d>
@@ -268,6 +272,7 @@ else()
                 symbolic_expression_loader_pass 
                 function_loader_pass                  
                 -Wl,-all_load ddisasm_loader_pass
+                ${GENERATED_STATIC_LIB}
                 datalog_superset_pass
                 no_return_pass function_inference_pass -Wl,-noall_load)
     else()
@@ -282,6 +287,7 @@ else()
                 symbolic_expression_loader_pass 
                 function_loader_pass
                 -Wl,--whole-archive ddisasm_loader_pass
+                ${GENERATED_STATIC_LIB}
                 datalog_superset_pass
                 no_return_pass function_inference_pass -Wl,--no-whole-archive)
     endif()
@@ -298,6 +304,7 @@ endif()
 target_link_libraries(
         gtirb-mixer
         PRIVATE
+        ${GENERATED_STATIC_LIB}
         ddisasm_pipeline
         gtirb
         gtirb_pprinter

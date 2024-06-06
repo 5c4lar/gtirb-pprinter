@@ -30,7 +30,7 @@ public:
 
     virtual std::string getSourceFilename() const override
     {
-        return "src/gtirb-mixer/datalog/datalog_superset.dl";
+        return "src/tools/gtirb-mixer/datalog/datalog_superset.dl";
     }
 
     virtual bool hasLoad(void) override

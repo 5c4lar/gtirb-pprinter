@@ -29,7 +29,7 @@ public:
 
     virtual std::string getSourceFilename() const override
     {
-        return "src/gtirb-mixer/datalog/ddisasm_loader.dl";
+        return "src/tools/gtirb-mixer/datalog/ddisasm_loader.dl";
     }
 
     virtual bool hasLoad(void) override
